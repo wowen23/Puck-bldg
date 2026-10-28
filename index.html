@@ -1,0 +1,19 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Puck Building 3D Study</title><style>body{margin:0;background:#17212b;color:#eee;font:15px system-ui}header,footer{padding:14px 18px}h2{margin:0;font-size:20px}small,p{color:#c2cbd1}#scene{height:70vh;min-height:380px;touch-action:none}button{padding:11px 15px;margin:5px;border:1px solid #a5a9ab;background:#2d3b48;color:white;border-radius:8px}button.on{background:#d6a678;color:#171d22}</style></head><body><header><h2>Puck Building · NYC</h2><small>Interactive architectural concept · not measured</small></header><div id="scene"></div><footer><button id="outside" class="on">Exterior</button><button id="inside">Hypothetical frame</button><button id="reset">Reset view</button><p>Drag to orbit · pinch to zoom. This is an illustrative study, not a verified reconstruction of the building or its structural system.</p></footer><script type="module">
+import * as T from 'https://esm.sh/three@0.164.1';
+import {OrbitControls} from 'https://esm.sh/three@0.164.1/examples/jsm/controls/OrbitControls.js';
+const host=document.querySelector('#scene'),scene=new T.Scene();scene.background=new T.Color('#26323c');const camera=new T.PerspectiveCamera(45,1,.1,200);camera.position.set(25,19,28);const renderer=new T.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));host.appendChild(renderer.domElement);const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.target.set(0,6,0);controls.minDistance=14;controls.maxDistance=70;scene.add(new T.HemisphereLight(0xffffff,0x6a6971,2.5));const light=new T.DirectionalLight(0xffd8b4,2.4);light.position.set(-12,25,20);scene.add(light);
+const ext=new T.Group(),frame=new T.Group();scene.add(ext,frame);
+const material=c=>new T.MeshStandardMaterial({color:c,roughness:.85,side:T.DoubleSide});
+const brick=material('#a64e3a'),brick2=material('#924231'),stone=material('#d7b48c'),glass=material('#314a55'),metal=material('#8c999f');
+function cube(parent,w,h,d,x,y,z,mat){const mesh=new T.Mesh(new T.BoxGeometry(w,h,d),mat);mesh.position.set(x,y,z);parent.add(mesh)}
+cube(ext,16,11,9,0,5.5,-2,brick);cube(ext,16,14,5,0,7,5,brick2);
+for(const [z,floors] of [[2.55,7],[7.55,9]])for(let floor=0;floor<floors;floor++)for(let i=0;i<10;i++){let x=-7.15+i*1.57,y=.8+floor*1.43;cube(ext,1,.9,.09,x,y,z,glass);const arch=new T.Mesh(new T.TorusGeometry(.5,.1,6,20,Math.PI),stone);arch.position.set(x,y+.45,z+.09);ext.add(arch);cube(ext,1.2,.11,.2,x,y-.5,z+.1,stone)}
+for(let floor=0;floor<7;floor++)for(let i=0;i<6;i++)cube(ext,.09,.9,1,8.06,.8+floor*1.43,-5.5+i*1.45,glass);
+for(const y of [1.3,10.8,13.8])cube(ext,16.3,.22,.3,0,y,7.7,stone);
+for(let x=-8;x<=8;x+=2)for(let z=-6;z<=7;z+=2){let h=z>3?14:11;cube(frame,.15,h,.15,x,h/2,z,metal)}
+for(let y=1.4;y<=14;y+=1.4){cube(frame,16,.12,.12,0,y,7,metal);cube(frame,16,.12,.12,0,y,-6,metal)}
+frame.visible=false;
+function setMode(show){ext.visible=show;frame.visible=!show;document.querySelector('#outside').classList.toggle('on',show);document.querySelector('#inside').classList.toggle('on',!show)}
+document.querySelector('#outside').onclick=()=>setMode(true);document.querySelector('#inside').onclick=()=>setMode(false);document.querySelector('#reset').onclick=()=>{camera.position.set(25,19,28);controls.target.set(0,6,0);controls.update()};
+function resize(){const w=host.clientWidth,h=host.clientHeight;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h)}new ResizeObserver(resize).observe(host);resize();function loop(){requestAnimationFrame(loop);controls.update();renderer.render(scene,camera)}loop();
+</script></body></html>
